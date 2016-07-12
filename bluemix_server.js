@@ -1,26 +1,29 @@
+/* eslint-disable */
 Bluemix = {};
 
 OAuth.registerService('bluemix', 2, null, function(query) {
 
   var data = getAccessToken(query);
-  console.log(data);
+  // console.log(data);
   // console.log(JSON.stringify(data, null, 4));
   var accessToken = data.access_token;
   // console.log('access',accessToken);
   var refreshToken = data.refresh_token;
   // console.log('refresh',refreshToken);
   var identity = getIdentity(accessToken);
+  // console.log('identity', identity);
 
   return {
+    serviceName: 'bluemix',
     serviceData: {
-      id: identity.user_id,
+      id: identity.sub, // rws - using email for Meteor.userId() right now
       accessToken: OAuth.sealSecret(accessToken),
       refreshToken: OAuth.sealSecret(refreshToken),
-      email: identity.email || '',
-      username: identity.user_name,
+      email: identity.sub || '',
+      username: identity.sub,
       bmprofile: identity,
     },
-    options: {profile: {name: identity.name}}
+    options: { profile: { name: identity.sub } }
   };
 });
 
@@ -40,7 +43,8 @@ var getAccessToken = function (query) {
   try {
     response = HTTP.post(
       // "https://idaas.ng.bluemix.net/sps/oauth20sp/oauth20/token", {
-      "https://uaa.eu-gb.bluemix.net/oauth/token", {
+      // "https://uaa.eu-gb.bluemix.net/oauth/token", {
+      "https://idaas.iam.ibm.com/idaas/oidc/endpoint/default/token", {
         headers: {
           Accept: 'application/json',
           "User-Agent": userAgent,
@@ -56,8 +60,7 @@ var getAccessToken = function (query) {
         }
       });
   } catch (err) {
-    throw _.extend(new Error("Failed to complete OAuth handshake with Bluemix. " + err.message),
-                   {response: err.response});
+    throw _.extend(new Error("Failed to complete OAuth handshake with Bluemix. " + err.message), {response: err.response});
   }
   if (response.data.error) { // if the http response was a json object with an error attribute
     throw new Error("Failed to complete OAuth handshake with Bluemix. " + response.data.error);
@@ -68,12 +71,25 @@ var getAccessToken = function (query) {
 
 var getIdentity = function (accessToken) {
   try {
-    var url = "https://uaa.eu-gb.bluemix.net/userinfo?access_token=" + accessToken;
-    //var url = "https://idaas.ng.bluemix.net/idaas/resources/profile.jsp?access_token=" + accessToken;
-    return JSON.parse(HTTP.get(url).content);
+    var config = ServiceConfiguration.configurations.findOne({service: 'bluemix'});
+    var url = 'https://idaas.iam.ibm.com/idaas/oidc/endpoint/default/introspect';
+    var opts = {
+      npmRequestOptions: {
+        auth: {
+          user: config.clientId,
+          pass: config.secret,
+          sendImmediately: true
+        },
+        form: {
+          token: accessToken
+        }
+      }
+    };
+    // var url = "https://uaa.eu-gb.bluemix.net/userinfo?access_token=" + accessToken;
+    // var url = "https://idaas.ng.bluemix.net/idaas/resources/profile.jsp?access_token=" + accessToken;
+    return JSON.parse(HTTP.post(url, opts).content);
   } catch (err) {
-    throw _.extend(new Error("Failed to fetch identity from Bluemix. " + err.message),
-                   {response: err.response});
+    throw _.extend(new Error("Failed to fetch identity from Bluemix. " + err.message), {response: err.response});
   }
 };
 

@@ -1,3 +1,4 @@
+/* eslint-disable */
 Template.configureLoginServiceDialogForBluemix.helpers({
   siteUrl: function () {
     return Meteor.absoluteUrl();

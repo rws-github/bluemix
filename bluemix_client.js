@@ -1,3 +1,4 @@
+/* eslint-disable */
 Bluemix = {};
 
 // Request Bluemix credentials for the user
@@ -29,9 +30,10 @@ Bluemix.requestCredential = function (options, credentialRequestCompleteCallback
 
   console.log('redirectUri',redirectUri)
 
-    // 'https://idaas.ng.bluemix.net/sps/oauth20sp/oauth20/authorize' +
   var loginUrl =
-    'https://login.eu-gb.bluemix.net/UAALoginServerWAR/oauth/authorize' +
+    'https://idaas.iam.ibm.com/idaas/oidc/endpoint/default/authorize' +
+    // 'https://login.eu-gb.bluemix.net/UAALoginServerWAR/oauth/authorize' +
+    // 'https://idaas.ng.bluemix.net/sps/oauth20sp/oauth20/authorize' +
     '?client_id=' + config.clientId +
     '&scope=' + flatScope +
     '&redirect_uri=' + redirectUri +

@@ -1,8 +1,9 @@
+/* eslint-disable */
 Package.describe({
   name: 'ibmcloud:bluemix',
   version: '1.0.3',
-  summary: 'IBM Bluemix OAuth flow',
-  git: 'https://github.com/oneibmcloud/bluemix.git',
+  summary: 'IBM Blue ID OpenID flow',
+  git: 'https://github.com/rws-github/bluemix.git',
   documentation: 'README.md'
 });
 
